@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dropdown_button2/dropdown_button2.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({super.key});
@@ -35,9 +36,15 @@ class _SignUpScreenState extends State<SignUpScreen> {
   final description = TextEditingController();
   String fieldOfExpertise = "Science";
 
-  final String firebaseApiKey = 'AIzaSyBAThDzgRhlT-5W4WwxdmEdTVf89e24VFU'; // Replace this
-
   Future<void> signUpUser() async {
+    final firebaseApiKey = dotenv.env['FIREBASE_API_KEY'];
+    if (firebaseApiKey == null || firebaseApiKey.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("API key not found. Check .env setup.")),
+      );
+      return;
+    }
+
     try {
       final authUrl = Uri.parse("https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=$firebaseApiKey");
 

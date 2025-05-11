@@ -1,15 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'screens/login_screen.dart';
 import 'screens/signup_screen.dart';
 
-void main() async {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
   try {
-    await Firebase.initializeApp(); // Ensure Firebase is initialized
+    await dotenv.load(); // Load .env variables
+    await Firebase.initializeApp(); // Firebase init
     runApp(const MyApp());
   } catch (e) {
-    print('❌ Firebase initialization failed: $e');
+    print('❌ Initialization failed: $e');
   }
 }
 

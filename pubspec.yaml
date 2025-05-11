@@ -16,6 +16,7 @@ dependencies:
   firebase_core: ^2.24.2
   firebase_auth: ^4.15.3
   cloud_firestore: ^4.14.0
+  flutter_dotenv: ^5.2.1
 
 
 
@@ -26,5 +27,5 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
-#  assets:
-#    - assets/lottie/education.json
+  assets:
+    - .env
