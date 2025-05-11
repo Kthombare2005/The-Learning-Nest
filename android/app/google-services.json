@@ -1,0 +1,69 @@
+{
+  "project_info": {
+    "project_number": "856263161249",
+    "firebase_url": "https://learning-nest-f9835-default-rtdb.firebaseio.com",
+    "project_id": "learning-nest-f9835",
+    "storage_bucket": "learning-nest-f9835.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:856263161249:android:753284a5842cc804cb47e0",
+        "android_client_info": {
+          "package_name": "com.example.learning_nest"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "856263161249-0l345eq531ob64m26k58394hn5u7o9uo.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBAThDzgRhlT-5W4WwxdmEdTVf89e24VFU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "856263161249-0l345eq531ob64m26k58394hn5u7o9uo.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:856263161249:android:a5a562141323b28acb47e0",
+        "android_client_info": {
+          "package_name": "com.example.the_learning_nest"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "856263161249-0l345eq531ob64m26k58394hn5u7o9uo.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBAThDzgRhlT-5W4WwxdmEdTVf89e24VFU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "856263161249-0l345eq531ob64m26k58394hn5u7o9uo.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
