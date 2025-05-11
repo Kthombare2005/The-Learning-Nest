@@ -14,6 +14,7 @@ class SignUpScreen extends StatefulWidget {
 }
 
 class _SignUpScreenState extends State<SignUpScreen> {
+  final _formKey = GlobalKey<FormState>();
   String selectedRole = "Student";
   bool showPassword = false;
   bool showConfirmPassword = false;
@@ -127,126 +128,139 @@ class _SignUpScreenState extends State<SignUpScreen> {
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            DropdownButtonFormField2(
-              isExpanded: true,
-              value: selectedRole,
-              decoration: inputDecoration("Select Role").copyWith(
-                prefixIcon: const Icon(Icons.person),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              DropdownButtonFormField2(
+                isExpanded: true,
+                value: selectedRole,
+                decoration: inputDecoration("Select Role").copyWith(
+                  prefixIcon: const Icon(Icons.person),
+                ),
+                items: const [
+                  DropdownMenuItem(value: "Student", child: Text("Student")),
+                  DropdownMenuItem(value: "Parent", child: Text("Parent")),
+                  DropdownMenuItem(value: "Contributor", child: Text("Contributor")),
+                ],
+                onChanged: (value) => setState(() => selectedRole = value!),
               ),
-              items: const [
-                DropdownMenuItem(value: "Student", child: Text("Student")),
-                DropdownMenuItem(value: "Parent", child: Text("Parent")),
-                DropdownMenuItem(value: "Contributor", child: Text("Contributor")),
+              const SizedBox(height: 16),
+              TextFormField(controller: fullName, decoration: inputDecoration("Full Name")),
+              const SizedBox(height: 16),
+              TextFormField(controller: email, decoration: inputDecoration("Email ID")),
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: contact,
+                keyboardType: TextInputType.number,
+                maxLength: 10,
+                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                decoration: inputDecoration("Contact Number").copyWith(prefixText: "+91 ", counterText: ""),
+              ),
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: password,
+                obscureText: !showPassword,
+                decoration: inputDecoration("Create Password").copyWith(
+                  suffixIcon: IconButton(
+                    icon: Icon(showPassword ? Icons.visibility : Icons.visibility_off),
+                    onPressed: () => setState(() => showPassword = !showPassword),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: confirmPassword,
+                obscureText: !showConfirmPassword,
+                decoration: inputDecoration("Confirm Password").copyWith(
+                  suffixIcon: IconButton(
+                    icon: Icon(showConfirmPassword ? Icons.visibility : Icons.visibility_off),
+                    onPressed: () => setState(() => showConfirmPassword = !showConfirmPassword),
+                  ),
+                ),
+                validator: (value) {
+                  if (value != password.text) {
+                    return "Passwords do not match";
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 16),
+
+              if (selectedRole == "Student") ...[
+                TextFormField(
+                  controller: age,
+                  keyboardType: TextInputType.number,
+                  inputFormatters: [
+                    FilteringTextInputFormatter.digitsOnly,
+                    LengthLimitingTextInputFormatter(2),
+                  ],
+                  decoration: inputDecoration("Age"),
+                ),
+                const SizedBox(height: 16),
+                DropdownButtonFormField(
+                  value: selectedClass,
+                  decoration: inputDecoration("Select Class").copyWith(prefixIcon: const Icon(Icons.school)),
+                  items: [
+                    "Class 1", "Class 2", "Class 3", "Class 4", "Class 5",
+                    "Class 6", "Class 7", "Class 8", "Class 9", "Class 10", "Class 11", "Class 12"
+                  ].map((e) => DropdownMenuItem(value: e, child: Text(e))).toList(),
+                  onChanged: (value) => setState(() => selectedClass = value!),
+                ),
+                const SizedBox(height: 16),
+                TextFormField(controller: guardianName, decoration: inputDecoration("Guardian Name")),
+                const SizedBox(height: 16),
+                TextFormField(
+                  controller: guardianContact,
+                  keyboardType: TextInputType.number,
+                  inputFormatters: [
+                    FilteringTextInputFormatter.digitsOnly,
+                    LengthLimitingTextInputFormatter(10),
+                  ],
+                  decoration: inputDecoration("Guardian Contact").copyWith(prefixText: "+91 "),
+                ),
+                const SizedBox(height: 16),
+                TextFormField(controller: schoolName, decoration: inputDecoration("School Name")),
               ],
-              onChanged: (value) => setState(() => selectedRole = value!),
-            ),
-            const SizedBox(height: 16),
-            TextFormField(controller: fullName, decoration: inputDecoration("Full Name")),
-            const SizedBox(height: 16),
-            TextFormField(controller: email, decoration: inputDecoration("Email ID")),
-            const SizedBox(height: 16),
-            TextFormField(
-              controller: contact,
-              keyboardType: TextInputType.number,
-              maxLength: 10,
-              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-              decoration: inputDecoration("Contact Number").copyWith(prefixText: "+91 ", counterText: ""),
-            ),
-            const SizedBox(height: 16),
-            TextFormField(
-              controller: password,
-              obscureText: !showPassword,
-              decoration: inputDecoration("Create Password").copyWith(
-                suffixIcon: IconButton(
-                  icon: Icon(showPassword ? Icons.visibility : Icons.visibility_off),
-                  onPressed: () => setState(() => showPassword = !showPassword),
+
+              if (selectedRole == "Parent") ...[
+                TextFormField(controller: studentName, decoration: inputDecoration("Student Name")),
+              ],
+
+              if (selectedRole == "Contributor") ...[
+                DropdownButtonFormField(
+                  value: fieldOfExpertise,
+                  decoration: inputDecoration("Field of Expertise").copyWith(prefixIcon: const Icon(Icons.work_outline)),
+                  items: [
+                    "Science", "Mathematics", "English", "Computer Science", "Other"
+                  ].map((e) => DropdownMenuItem(value: e, child: Text(e))).toList(),
+                  onChanged: (value) => setState(() => fieldOfExpertise = value!),
+                ),
+                const SizedBox(height: 16),
+                TextFormField(controller: experienceYears, keyboardType: TextInputType.number, decoration: inputDecoration("Years of Experience")),
+                const SizedBox(height: 16),
+                TextFormField(controller: description, maxLines: 3, decoration: inputDecoration("Description")),
+              ],
+
+              const SizedBox(height: 28),
+              SizedBox(
+                height: 50,
+                child: ElevatedButton(
+                  onPressed: () {
+                    if (_formKey.currentState!.validate()) {
+                      signUpUser();
+                    }
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blue,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                  child: const Text("Sign Up", style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.white)),
                 ),
               ),
-            ),
-            const SizedBox(height: 16),
-            TextFormField(
-              controller: confirmPassword,
-              obscureText: !showConfirmPassword,
-              decoration: inputDecoration("Confirm Password").copyWith(
-                suffixIcon: IconButton(
-                  icon: Icon(showConfirmPassword ? Icons.visibility : Icons.visibility_off),
-                  onPressed: () => setState(() => showConfirmPassword = !showConfirmPassword),
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-
-            if (selectedRole == "Student") ...[
-              TextFormField(
-                controller: age,
-                keyboardType: TextInputType.number,
-                inputFormatters: [
-                  FilteringTextInputFormatter.digitsOnly,
-                  LengthLimitingTextInputFormatter(2),
-                ],
-                decoration: inputDecoration("Age"),
-              ),
-              const SizedBox(height: 16),
-              DropdownButtonFormField(
-                value: selectedClass,
-                decoration: inputDecoration("Select Class").copyWith(prefixIcon: const Icon(Icons.school)),
-                items: [
-                  "Class 1", "Class 2", "Class 3", "Class 4", "Class 5",
-                  "Class 6", "Class 7", "Class 8", "Class 9", "Class 10", "Class 11", "Class 12"
-                ].map((e) => DropdownMenuItem(value: e, child: Text(e))).toList(),
-                onChanged: (value) => setState(() => selectedClass = value!),
-              ),
-              const SizedBox(height: 16),
-              TextFormField(controller: guardianName, decoration: inputDecoration("Guardian Name")),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: guardianContact,
-                keyboardType: TextInputType.number,
-                inputFormatters: [
-                  FilteringTextInputFormatter.digitsOnly,
-                  LengthLimitingTextInputFormatter(10),
-                ],
-                decoration: inputDecoration("Guardian Contact").copyWith(prefixText: "+91 "),
-              ),
-              const SizedBox(height: 16),
-              TextFormField(controller: schoolName, decoration: inputDecoration("School Name")),
             ],
-
-            if (selectedRole == "Parent") ...[
-              TextFormField(controller: studentName, decoration: inputDecoration("Student Name")),
-            ],
-
-            if (selectedRole == "Contributor") ...[
-              DropdownButtonFormField(
-                value: fieldOfExpertise,
-                decoration: inputDecoration("Field of Expertise").copyWith(prefixIcon: const Icon(Icons.work_outline)),
-                items: [
-                  "Science", "Mathematics", "English", "Computer Science", "Other"
-                ].map((e) => DropdownMenuItem(value: e, child: Text(e))).toList(),
-                onChanged: (value) => setState(() => fieldOfExpertise = value!),
-              ),
-              const SizedBox(height: 16),
-              TextFormField(controller: experienceYears, keyboardType: TextInputType.number, decoration: inputDecoration("Years of Experience")),
-              const SizedBox(height: 16),
-              TextFormField(controller: description, maxLines: 3, decoration: inputDecoration("Description")),
-            ],
-
-            const SizedBox(height: 28),
-            SizedBox(
-              height: 50,
-              child: ElevatedButton(
-                onPressed: signUpUser,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blue,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                ),
-                child: const Text("Sign Up", style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.white)),
-              ),
-            ),
-          ],
+          ),
         ),
       ),
     );

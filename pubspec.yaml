@@ -17,6 +17,7 @@ dependencies:
   firebase_auth: ^4.15.3
   cloud_firestore: ^4.14.0
   flutter_dotenv: ^5.2.1
+  fl_chart: ^0.64.0
 
 
 
