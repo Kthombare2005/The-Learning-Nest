@@ -13,6 +13,9 @@
 migrate_working_dir/
 .env
 
+# dotenv environment file (add manually if not present above)
+.env
+
 # IntelliJ related
 *.iml
 *.ipr
