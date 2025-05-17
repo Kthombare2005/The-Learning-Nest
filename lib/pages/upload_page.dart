@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:file_selector/file_selector.dart';
+import 'package:uuid/uuid.dart';
 
 class UploadPage extends StatefulWidget {
   const UploadPage({super.key});
@@ -42,47 +46,39 @@ class _UploadPageState extends State<UploadPage> {
               TextFormField(
                 controller: titleController,
                 decoration: const InputDecoration(labelText: "Title"),
-                validator: (value) =>
-                value!.isEmpty ? "Please enter a title" : null,
+                validator: (value) => value!.isEmpty ? "Please enter a title" : null,
               ),
               const SizedBox(height: 16),
               DropdownButtonFormField<String>(
                 value: selectedClass,
                 decoration: const InputDecoration(labelText: "Select Class"),
                 items: classOptions
-                    .map((cls) =>
-                    DropdownMenuItem(value: cls, child: Text(cls)))
+                    .map((cls) => DropdownMenuItem(value: cls, child: Text(cls)))
                     .toList(),
                 onChanged: (val) => setState(() => selectedClass = val),
-                validator: (value) =>
-                value == null ? "Please select a class" : null,
+                validator: (value) => value == null ? "Please select a class" : null,
               ),
               const SizedBox(height: 16),
               DropdownButtonFormField<String>(
                 value: selectedType,
                 decoration: const InputDecoration(labelText: "Material Type"),
                 items: typeOptions
-                    .map((type) =>
-                    DropdownMenuItem(value: type, child: Text(type)))
+                    .map((type) => DropdownMenuItem(value: type, child: Text(type)))
                     .toList(),
                 onChanged: (val) => setState(() => selectedType = val),
-                validator: (value) =>
-                value == null ? "Please select a type" : null,
+                validator: (value) => value == null ? "Please select a type" : null,
               ),
               const SizedBox(height: 16),
               TextFormField(
                 controller: descController,
                 maxLines: 3,
-                decoration:
-                const InputDecoration(labelText: "Description (optional)"),
+                decoration: const InputDecoration(labelText: "Description (optional)"),
               ),
               const SizedBox(height: 16),
               ElevatedButton.icon(
                 onPressed: _pickFile,
                 icon: const Icon(Icons.attach_file),
-                label: Text(selectedFile != null
-                    ? selectedFile!.name
-                    : "Choose File"),
+                label: Text(selectedFile != null ? selectedFile!.name : "Choose File"),
               ),
               const SizedBox(height: 24),
               ElevatedButton(
@@ -100,11 +96,8 @@ class _UploadPageState extends State<UploadPage> {
         onTap: (index) {
           if (_selectedIndex == index) return;
           setState(() => _selectedIndex = index);
-
           if (index == 0) {
             Navigator.pushReplacementNamed(context, '/contributor-dashboard');
-          } else if (index == 1) {
-            // already on upload
           } else if (index == 2) {
             Navigator.pushReplacementNamed(context, '/gallery');
           } else if (index == 3) {
@@ -126,9 +119,7 @@ class _UploadPageState extends State<UploadPage> {
       label: 'any',
       extensions: ['pdf', 'docx', 'mp4', 'jpg', 'png', 'txt'],
     );
-
     final picked = await openFile(acceptedTypeGroups: [typeGroup]);
-
     if (picked != null) {
       setState(() {
         selectedFile = picked;
@@ -136,13 +127,48 @@ class _UploadPageState extends State<UploadPage> {
     }
   }
 
-  void _submitUpload() {
+  void _submitUpload() async {
     if (_formKey.currentState!.validate() && selectedFile != null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Uploading...")),
       );
+      try {
+        final uid = FirebaseAuth.instance.currentUser?.uid;
+        final filename = const Uuid().v4() + "_" + selectedFile!.name;
+        final storageRef = FirebaseStorage.instance.ref().child('materials/$filename');
+        final fileBytes = await selectedFile!.readAsBytes();
+        await storageRef.putData(fileBytes);
+        final downloadUrl = await storageRef.getDownloadURL();
 
-      // TODO: Add Firebase Storage upload + Firestore write
+        await FirebaseFirestore.instance.collection('materials').add({
+          'title': titleController.text.trim(),
+          'description': descController.text.trim(),
+          'class': selectedClass,
+          'type': selectedType,
+          'url': downloadUrl,
+          'filename': filename,
+          'uploader': uid,
+          'views': 0,
+          'revenue': 0,
+          'timestamp': FieldValue.serverTimestamp(),
+        });
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Upload successful!")),
+        );
+
+        setState(() {
+          selectedFile = null;
+          titleController.clear();
+          descController.clear();
+          selectedClass = null;
+          selectedType = null;
+        });
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Upload failed: $e")),
+        );
+      }
     } else if (selectedFile == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Please select a file")),
