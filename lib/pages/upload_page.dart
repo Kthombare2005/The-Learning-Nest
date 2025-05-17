@@ -17,6 +17,7 @@ class _UploadPageState extends State<UploadPage> {
   String? selectedClass;
   String? selectedType;
   XFile? selectedFile;
+  bool isUploading = false;
 
   final titleController = TextEditingController();
   final descController = TextEditingController();
@@ -26,9 +27,34 @@ class _UploadPageState extends State<UploadPage> {
 
   int _selectedIndex = 1;
 
+  List<String> getAllowedExtensions() {
+    if (selectedType == "Video Lecture") {
+      return ['mp4', 'avi', 'mov', 'mkv'];
+    } else if (selectedType == "Worksheet" || selectedType == "Notes") {
+      return ['pdf', 'docx', 'pptx', 'ppt', 'doc'];
+    }
+    return [];
+  }
+
   @override
   Widget build(BuildContext context) {
+    if (isUploading) {
+      return const Scaffold(
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              CircularProgressIndicator(),
+              SizedBox(height: 16),
+              Text("Uploading file...", style: TextStyle(fontSize: 16)),
+            ],
+          ),
+        ),
+      );
+    }
+
     return Scaffold(
+      backgroundColor: const Color(0xFFF1F3FA),
       appBar: AppBar(
         title: const Text("Upload Study Material"),
         backgroundColor: Colors.blue,
@@ -37,55 +63,82 @@ class _UploadPageState extends State<UploadPage> {
           onPressed: () => Navigator.pushReplacementNamed(context, '/contributor-dashboard'),
         ),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Form(
-          key: _formKey,
-          child: ListView(
-            children: [
-              TextFormField(
-                controller: titleController,
-                decoration: const InputDecoration(labelText: "Title"),
-                validator: (value) => value!.isEmpty ? "Please enter a title" : null,
+      body: Center(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(20),
+          child: Card(
+            elevation: 10,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.cloud_upload, size: 80, color: Colors.blueAccent),
+                  const SizedBox(height: 16),
+                  const Text(
+                    "Upload Your Content",
+                    style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 8),
+                  const Text(
+                    "Share notes, videos or worksheets with the community. Let's help students learn better!",
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: 14, color: Colors.black54),
+                  ),
+                  const SizedBox(height: 20),
+                  Form(
+                    key: _formKey,
+                    child: Column(
+                      children: [
+                        _buildInput(Icons.title, "Title", controller: titleController),
+                        const SizedBox(height: 16),
+                        _buildDropdown(Icons.school, "Select Class", selectedClass, classOptions,
+                                (val) => setState(() => selectedClass = val)),
+                        const SizedBox(height: 16),
+                        _buildDropdown(Icons.category, "Material Type", selectedType, typeOptions,
+                                (val) {
+                              setState(() {
+                                selectedType = val;
+                                selectedFile = null;
+                              });
+                            }),
+                        const SizedBox(height: 16),
+                        _buildInput(Icons.description, "Description (optional)",
+                            controller: descController, maxLines: 3),
+                        const SizedBox(height: 16),
+                        ElevatedButton.icon(
+                          onPressed: _pickFile,
+                          icon: const Icon(Icons.attach_file),
+                          label: Text(selectedFile != null ? selectedFile!.name : "Choose File"),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.blue,
+                            minimumSize: const Size.fromHeight(48),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        ElevatedButton.icon(
+                          onPressed: _submitUpload,
+                          icon: const Icon(Icons.upload),
+                          label: const Text("Upload Material"),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.green,
+                            foregroundColor: Colors.white,
+                            minimumSize: const Size.fromHeight(48),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(height: 16),
-              DropdownButtonFormField<String>(
-                value: selectedClass,
-                decoration: const InputDecoration(labelText: "Select Class"),
-                items: classOptions
-                    .map((cls) => DropdownMenuItem(value: cls, child: Text(cls)))
-                    .toList(),
-                onChanged: (val) => setState(() => selectedClass = val),
-                validator: (value) => value == null ? "Please select a class" : null,
-              ),
-              const SizedBox(height: 16),
-              DropdownButtonFormField<String>(
-                value: selectedType,
-                decoration: const InputDecoration(labelText: "Material Type"),
-                items: typeOptions
-                    .map((type) => DropdownMenuItem(value: type, child: Text(type)))
-                    .toList(),
-                onChanged: (val) => setState(() => selectedType = val),
-                validator: (value) => value == null ? "Please select a type" : null,
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: descController,
-                maxLines: 3,
-                decoration: const InputDecoration(labelText: "Description (optional)"),
-              ),
-              const SizedBox(height: 16),
-              ElevatedButton.icon(
-                onPressed: _pickFile,
-                icon: const Icon(Icons.attach_file),
-                label: Text(selectedFile != null ? selectedFile!.name : "Choose File"),
-              ),
-              const SizedBox(height: 24),
-              ElevatedButton(
-                onPressed: _submitUpload,
-                child: const Text("Upload Material"),
-              ),
-            ],
+            ),
           ),
         ),
       ),
@@ -114,11 +167,54 @@ class _UploadPageState extends State<UploadPage> {
     );
   }
 
-  Future<void> _pickFile() async {
-    final typeGroup = XTypeGroup(
-      label: 'any',
-      extensions: ['pdf', 'docx', 'mp4', 'jpg', 'png', 'txt'],
+  Widget _buildInput(IconData icon, String label,
+      {required TextEditingController controller, int maxLines = 1}) {
+    return TextFormField(
+      controller: controller,
+      maxLines: maxLines,
+      validator: (value) => (value == null || value.trim().isEmpty)
+          ? "Please enter $label".replaceAll(" (optional)", "")
+          : null,
+      decoration: InputDecoration(
+        prefixIcon: Icon(icon),
+        labelText: label,
+        filled: true,
+        fillColor: Colors.grey[100],
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+      ),
     );
+  }
+
+  Widget _buildDropdown(IconData icon, String label, String? value, List<String> items,
+      void Function(String?) onChanged) {
+    return DropdownButtonFormField<String>(
+      value: value,
+      decoration: InputDecoration(
+        prefixIcon: Icon(icon),
+        labelText: label,
+        filled: true,
+        fillColor: Colors.grey[100],
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+      ),
+      items: items.map((item) => DropdownMenuItem(value: item, child: Text(item))).toList(),
+      onChanged: onChanged,
+      validator: (val) => val == null ? "Please select $label" : null,
+    );
+  }
+
+  Future<void> _pickFile() async {
+    if (selectedType == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Please select Material Type first")),
+      );
+      return;
+    }
+
+    final typeGroup = XTypeGroup(
+      label: 'custom',
+      extensions: getAllowedExtensions(),
+    );
+
     final picked = await openFile(acceptedTypeGroups: [typeGroup]);
     if (picked != null) {
       setState(() {
@@ -128,10 +224,18 @@ class _UploadPageState extends State<UploadPage> {
   }
 
   void _submitUpload() async {
-    if (_formKey.currentState!.validate() && selectedFile != null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Uploading...")),
-      );
+    if (_formKey.currentState!.validate()) {
+      if (selectedType == null || selectedFile == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Please choose a valid file after selecting material type")),
+        );
+        return;
+      }
+
+      setState(() {
+        isUploading = true;
+      });
+
       try {
         final uid = FirebaseAuth.instance.currentUser?.uid;
         final filename = const Uuid().v4() + "_" + selectedFile!.name;
@@ -153,26 +257,27 @@ class _UploadPageState extends State<UploadPage> {
           'timestamp': FieldValue.serverTimestamp(),
         });
 
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Upload successful!")),
-        );
-
         setState(() {
           selectedFile = null;
           titleController.clear();
           descController.clear();
           selectedClass = null;
           selectedType = null;
+          isUploading = false;
         });
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Upload successful!")),
+        );
       } catch (e) {
+        setState(() {
+          isUploading = false;
+        });
+
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text("Upload failed: $e")),
         );
       }
-    } else if (selectedFile == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Please select a file")),
-      );
     }
   }
 }
