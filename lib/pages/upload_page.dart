@@ -4,6 +4,8 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:file_selector/file_selector.dart';
 import 'package:uuid/uuid.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:the_learning_nest/pages/gallery_page.dart';
 
 class UploadPage extends StatefulWidget {
   const UploadPage({super.key});
@@ -17,10 +19,12 @@ class _UploadPageState extends State<UploadPage> {
   String? selectedClass;
   String? selectedType;
   XFile? selectedFile;
+  XFile? thumbnailFile;
   bool isUploading = false;
 
   final titleController = TextEditingController();
   final descController = TextEditingController();
+  final int _maxDescriptionLength = 50;
 
   final classOptions = ['Nursery'] + List.generate(12, (i) => 'Class ${i + 1}');
   final typeOptions = ['Video Lecture', 'Worksheet', 'Notes'];
@@ -34,6 +38,11 @@ class _UploadPageState extends State<UploadPage> {
       return ['pdf', 'docx', 'pptx', 'ppt', 'doc'];
     }
     return [];
+  }
+
+  Future<String?> _getStoredUid() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString('uid');
   }
 
   @override
@@ -76,16 +85,11 @@ class _UploadPageState extends State<UploadPage> {
                 children: [
                   const Icon(Icons.cloud_upload, size: 80, color: Colors.blueAccent),
                   const SizedBox(height: 16),
-                  const Text(
-                    "Upload Your Content",
-                    style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-                  ),
+                  const Text("Upload Your Content", style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
                   const SizedBox(height: 8),
-                  const Text(
-                    "Share notes, videos or worksheets with the community. Let's help students learn better!",
-                    textAlign: TextAlign.center,
-                    style: TextStyle(fontSize: 14, color: Colors.black54),
-                  ),
+                  const Text("Share notes, videos or worksheets with the community. Let's help students learn better!",
+                      textAlign: TextAlign.center,
+                      style: TextStyle(fontSize: 14, color: Colors.black54)),
                   const SizedBox(height: 20),
                   Form(
                     key: _formKey,
@@ -96,16 +100,14 @@ class _UploadPageState extends State<UploadPage> {
                         _buildDropdown(Icons.school, "Select Class", selectedClass, classOptions,
                                 (val) => setState(() => selectedClass = val)),
                         const SizedBox(height: 16),
-                        _buildDropdown(Icons.category, "Material Type", selectedType, typeOptions,
-                                (val) {
-                              setState(() {
-                                selectedType = val;
-                                selectedFile = null;
-                              });
-                            }),
+                        _buildDropdown(Icons.category, "Material Type", selectedType, typeOptions, (val) {
+                          setState(() {
+                            selectedType = val;
+                            selectedFile = null;
+                          });
+                        }),
                         const SizedBox(height: 16),
-                        _buildInput(Icons.description, "Description (optional)",
-                            controller: descController, maxLines: 3),
+                        _buildDescriptionField(),
                         const SizedBox(height: 16),
                         ElevatedButton.icon(
                           onPressed: _pickFile,
@@ -114,9 +116,20 @@ class _UploadPageState extends State<UploadPage> {
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.blue,
                             minimumSize: const Size.fromHeight(48),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        ElevatedButton.icon(
+                          onPressed: _pickThumbnail,
+                          icon: const Icon(Icons.image),
+                          label: Text(thumbnailFile != null ? thumbnailFile!.name : "Optional: Choose Thumbnail",
+                              overflow: TextOverflow.ellipsis),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.grey.shade200,
+                            foregroundColor: Colors.blue,
+                            minimumSize: const Size.fromHeight(48),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                           ),
                         ),
                         const SizedBox(height: 16),
@@ -128,9 +141,7 @@ class _UploadPageState extends State<UploadPage> {
                             backgroundColor: Colors.green,
                             foregroundColor: Colors.white,
                             minimumSize: const Size.fromHeight(48),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                           ),
                         ),
                       ],
@@ -152,9 +163,7 @@ class _UploadPageState extends State<UploadPage> {
           if (index == 0) {
             Navigator.pushReplacementNamed(context, '/contributor-dashboard');
           } else if (index == 2) {
-            Navigator.pushReplacementNamed(context, '/gallery');
-          } else if (index == 3) {
-            Navigator.pushReplacementNamed(context, '/profile');
+            Navigator.push(context, MaterialPageRoute(builder: (context) => const GalleryPage()));
           }
         },
         items: const [
@@ -172,9 +181,8 @@ class _UploadPageState extends State<UploadPage> {
     return TextFormField(
       controller: controller,
       maxLines: maxLines,
-      validator: (value) => (value == null || value.trim().isEmpty)
-          ? "Please enter $label".replaceAll(" (optional)", "")
-          : null,
+      validator: (value) =>
+      (value == null || value.trim().isEmpty) ? "Please enter $label".replaceAll(" (optional)", "") : null,
       decoration: InputDecoration(
         prefixIcon: Icon(icon),
         labelText: label,
@@ -202,6 +210,27 @@ class _UploadPageState extends State<UploadPage> {
     );
   }
 
+  Widget _buildDescriptionField() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        TextFormField(
+          controller: descController,
+          maxLength: _maxDescriptionLength,
+          maxLines: 3,
+          decoration: InputDecoration(
+            prefixIcon: const Icon(Icons.description),
+            labelText: "Description (max 50 characters)",
+            filled: true,
+            fillColor: Colors.grey[100],
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+            counterText: "${descController.text.length}/$_maxDescriptionLength characters",
+          ),
+        ),
+      ],
+    );
+  }
+
   Future<void> _pickFile() async {
     if (selectedType == null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -210,11 +239,7 @@ class _UploadPageState extends State<UploadPage> {
       return;
     }
 
-    final typeGroup = XTypeGroup(
-      label: 'custom',
-      extensions: getAllowedExtensions(),
-    );
-
+    final typeGroup = XTypeGroup(label: 'custom', extensions: getAllowedExtensions());
     final picked = await openFile(acceptedTypeGroups: [typeGroup]);
     if (picked != null) {
       setState(() {
@@ -223,7 +248,17 @@ class _UploadPageState extends State<UploadPage> {
     }
   }
 
-  void _submitUpload() async {
+  Future<void> _pickThumbnail() async {
+    final imageGroup = XTypeGroup(label: 'images', extensions: ['jpg', 'png', 'jpeg']);
+    final picked = await openFile(acceptedTypeGroups: [imageGroup]);
+    if (picked != null) {
+      setState(() {
+        thumbnailFile = picked;
+      });
+    }
+  }
+
+  Future<void> _submitUpload() async {
     if (_formKey.currentState!.validate()) {
       if (selectedType == null || selectedFile == null) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -237,20 +272,33 @@ class _UploadPageState extends State<UploadPage> {
       });
 
       try {
-        final uid = FirebaseAuth.instance.currentUser?.uid;
+        final uid = await _getStoredUid();
+        if (uid == null || uid.isEmpty) throw Exception("User not logged in.");
+
+
         final filename = const Uuid().v4() + "_" + selectedFile!.name;
         final storageRef = FirebaseStorage.instance.ref().child('materials/$filename');
         final fileBytes = await selectedFile!.readAsBytes();
         await storageRef.putData(fileBytes);
         final downloadUrl = await storageRef.getDownloadURL();
 
+        String? thumbnailUrl;
+        if (thumbnailFile != null) {
+          final thumbName = const Uuid().v4() + "_" + thumbnailFile!.name;
+          final thumbRef = FirebaseStorage.instance.ref().child('thumbnails/$thumbName');
+          final thumbBytes = await thumbnailFile!.readAsBytes();
+          await thumbRef.putData(thumbBytes);
+          thumbnailUrl = await thumbRef.getDownloadURL();
+        }
+
         await FirebaseFirestore.instance.collection('materials').add({
           'title': titleController.text.trim(),
-          'description': descController.text.trim(),
+          'description': descController.text.trim().substring(0, descController.text.length.clamp(0, _maxDescriptionLength)),
           'class': selectedClass,
           'type': selectedType,
           'url': downloadUrl,
           'filename': filename,
+          'thumbnail': thumbnailUrl,
           'uploader': uid,
           'views': 0,
           'revenue': 0,
@@ -259,6 +307,7 @@ class _UploadPageState extends State<UploadPage> {
 
         setState(() {
           selectedFile = null;
+          thumbnailFile = null;
           titleController.clear();
           descController.clear();
           selectedClass = null;
@@ -273,10 +322,7 @@ class _UploadPageState extends State<UploadPage> {
         setState(() {
           isUploading = false;
         });
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Upload failed: $e")),
-        );
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Upload failed: $e")));
       }
     }
   }

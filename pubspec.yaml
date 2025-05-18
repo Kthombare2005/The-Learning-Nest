@@ -21,6 +21,16 @@ dependencies:
   file_selector: ^1.0.3
   firebase_storage: ^11.6.5
   uuid: ^4.3.3
+  url_launcher: ^6.1.7
+  intl: ^0.18.1
+  shared_preferences: ^2.2.2
+  video_player: ^2.7.2
+  chewie: ^1.7.4
+  flutter_pdfview: ^1.2.7
+  open_filex: ^4.3.2
+  path_provider: ^2.1.2
+  http: ^1.4.0
+  flutter_rating_bar: ^4.0.1
 
 
 
