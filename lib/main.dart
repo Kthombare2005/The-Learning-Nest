@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+
 import 'screens/login_screen.dart';
 import 'screens/signup_screen.dart';
 import 'screens/forgot_password_screen.dart';
 import 'screens/otp_login_screen.dart';
-// import 'dashboards/student_dashboard.dart';
+import 'dashboards/student_dashboard.dart';
 import 'dashboards/contributor_dashboard.dart';
 // import 'dashboards/parent_dashboard.dart';
-
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -38,13 +38,11 @@ class MyApp extends StatelessWidget {
         '/login-otp': (context) => const OtpLoginScreen(),
 
         // Dashboards based on role
-        // '/student-dashboard': (context) => const StudentDashboard(),
+        '/student-dashboard': (context) => const StudentDashboard(),
         '/contributor-dashboard': (context) => const ContributorDashboard(),
 
         // '/parent-dashboard': (context) => const ParentDashboard(),
       },
-
-
     );
   }
 }
