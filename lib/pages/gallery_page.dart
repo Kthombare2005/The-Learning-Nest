@@ -80,7 +80,7 @@ class GalleryPage extends StatelessWidget {
                           maxCrossAxisExtent: 300,
                           mainAxisSpacing: 16,
                           crossAxisSpacing: 16,
-                          mainAxisExtent: 360,
+                          mainAxisExtent: 380,
                         ),
                         itemCount: materials.length,
                         itemBuilder: (context, index) {
@@ -88,6 +88,7 @@ class GalleryPage extends StatelessWidget {
                           final title = data['title'] ?? 'Untitled';
                           final type = data['type'] ?? 'Material';
                           final materialClass = data['class'] ?? 'N/A';
+                          final subject = data['subject'] ?? '';
                           final description = data['description'] ?? '';
                           final thumbnail = data['thumbnail'];
                           final url = data['url'];
@@ -102,12 +103,13 @@ class GalleryPage extends StatelessWidget {
                                     url: url,
                                     type: type,
                                     title: title,
-                                    description: description, // ✅ passed
+                                    description: description,
                                   ),
                                 ),
                               );
                             },
                             child: Container(
+                              height: 420,
                               decoration: BoxDecoration(
                                 color: Colors.white,
                                 borderRadius: BorderRadius.circular(16),
@@ -160,6 +162,8 @@ class GalleryPage extends StatelessWidget {
                                         ),
                                       ],
                                     ),
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
                                   ),
                                   const SizedBox(height: 6),
                                   Wrap(
@@ -176,6 +180,12 @@ class GalleryPage extends StatelessWidget {
                                         backgroundColor: Colors.green.shade50,
                                         visualDensity: VisualDensity.compact,
                                       ),
+                                      if (subject.isNotEmpty)
+                                        Chip(
+                                          label: Text(subject, style: const TextStyle(fontSize: 11)),
+                                          backgroundColor: Colors.purple.shade50,
+                                          visualDensity: VisualDensity.compact,
+                                        ),
                                     ],
                                   ),
                                   const Spacer(),
@@ -195,7 +205,7 @@ class GalleryPage extends StatelessWidget {
                                                 url: url,
                                                 type: type,
                                                 title: title,
-                                                description: description, // ✅ passed
+                                                description: description,
                                               ),
                                             ),
                                           );

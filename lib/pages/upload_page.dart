@@ -1,3 +1,4 @@
+// (same imports)
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
@@ -23,8 +24,9 @@ class _UploadPageState extends State<UploadPage> {
   bool isUploading = false;
 
   final titleController = TextEditingController();
+  final subjectController = TextEditingController();
   final descController = TextEditingController();
-  final int _maxDescriptionLength = 50;
+  final int _maxDescriptionLength = 100;
 
   final classOptions = ['Nursery'] + List.generate(12, (i) => 'Class ${i + 1}');
   final typeOptions = ['Video Lecture', 'Worksheet', 'Notes'];
@@ -87,15 +89,19 @@ class _UploadPageState extends State<UploadPage> {
                   const SizedBox(height: 16),
                   const Text("Upload Your Content", style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
                   const SizedBox(height: 8),
-                  const Text("Share notes, videos or worksheets with the community. Let's help students learn better!",
-                      textAlign: TextAlign.center,
-                      style: TextStyle(fontSize: 14, color: Colors.black54)),
+                  const Text(
+                    "Share notes, videos or worksheets with the community. Let's help students learn better!",
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: 14, color: Colors.black54),
+                  ),
                   const SizedBox(height: 20),
                   Form(
                     key: _formKey,
                     child: Column(
                       children: [
                         _buildInput(Icons.title, "Title", controller: titleController),
+                        const SizedBox(height: 16),
+                        _buildInput(Icons.book, "Subject", controller: subjectController),
                         const SizedBox(height: 16),
                         _buildDropdown(Icons.school, "Select Class", selectedClass, classOptions,
                                 (val) => setState(() => selectedClass = val)),
@@ -176,13 +182,11 @@ class _UploadPageState extends State<UploadPage> {
     );
   }
 
-  Widget _buildInput(IconData icon, String label,
-      {required TextEditingController controller, int maxLines = 1}) {
+  Widget _buildInput(IconData icon, String label, {required TextEditingController controller, int maxLines = 1}) {
     return TextFormField(
       controller: controller,
       maxLines: maxLines,
-      validator: (value) =>
-      (value == null || value.trim().isEmpty) ? "Please enter $label".replaceAll(" (optional)", "") : null,
+      validator: (value) => (value == null || value.trim().isEmpty) ? "Please enter $label" : null,
       decoration: InputDecoration(
         prefixIcon: Icon(icon),
         labelText: label,
@@ -193,8 +197,7 @@ class _UploadPageState extends State<UploadPage> {
     );
   }
 
-  Widget _buildDropdown(IconData icon, String label, String? value, List<String> items,
-      void Function(String?) onChanged) {
+  Widget _buildDropdown(IconData icon, String label, String? value, List<String> items, void Function(String?) onChanged) {
     return DropdownButtonFormField<String>(
       value: value,
       decoration: InputDecoration(
@@ -211,23 +214,17 @@ class _UploadPageState extends State<UploadPage> {
   }
 
   Widget _buildDescriptionField() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        TextFormField(
-          controller: descController,
-          maxLength: _maxDescriptionLength,
-          maxLines: 3,
-          decoration: InputDecoration(
-            prefixIcon: const Icon(Icons.description),
-            labelText: "Description (max 50 characters)",
-            filled: true,
-            fillColor: Colors.grey[100],
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-            counterText: "${descController.text.length}/$_maxDescriptionLength characters",
-          ),
-        ),
-      ],
+    return TextFormField(
+      controller: descController,
+      maxLength: _maxDescriptionLength,
+      maxLines: 3,
+      decoration: InputDecoration(
+        prefixIcon: const Icon(Icons.description),
+        labelText: "Description (max 100 characters)",
+        filled: true,
+        fillColor: Colors.grey[100],
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+      ),
     );
   }
 
@@ -275,7 +272,6 @@ class _UploadPageState extends State<UploadPage> {
         final uid = await _getStoredUid();
         if (uid == null || uid.isEmpty) throw Exception("User not logged in.");
 
-
         final filename = const Uuid().v4() + "_" + selectedFile!.name;
         final storageRef = FirebaseStorage.instance.ref().child('materials/$filename');
         final fileBytes = await selectedFile!.readAsBytes();
@@ -293,7 +289,8 @@ class _UploadPageState extends State<UploadPage> {
 
         await FirebaseFirestore.instance.collection('materials').add({
           'title': titleController.text.trim(),
-          'description': descController.text.trim().substring(0, descController.text.length.clamp(0, _maxDescriptionLength)),
+          'subject': subjectController.text.trim(),
+          'description': descController.text.trim(),
           'class': selectedClass,
           'type': selectedType,
           'url': downloadUrl,
@@ -309,6 +306,7 @@ class _UploadPageState extends State<UploadPage> {
           selectedFile = null;
           thumbnailFile = null;
           titleController.clear();
+          subjectController.clear();
           descController.clear();
           selectedClass = null;
           selectedType = null;
