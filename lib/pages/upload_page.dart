@@ -7,6 +7,7 @@ import 'package:file_selector/file_selector.dart';
 import 'package:uuid/uuid.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:the_learning_nest/pages/gallery_page.dart';
+import 'package:the_learning_nest/pages/profile_page.dart';
 
 class UploadPage extends StatefulWidget {
   const UploadPage({super.key});
@@ -26,11 +27,10 @@ class _UploadPageState extends State<UploadPage> {
   final titleController = TextEditingController();
   final subjectController = TextEditingController();
   final descController = TextEditingController();
-  final int _maxDescriptionLength = 100;
 
   final classOptions = ['Nursery'] + List.generate(12, (i) => 'Class ${i + 1}');
   final typeOptions = ['Video Lecture', 'Worksheet', 'Notes'];
-
+  final int _maxDescriptionLength = 100;
   int _selectedIndex = 1;
 
   List<String> getAllowedExtensions() {
@@ -82,78 +82,73 @@ class _UploadPageState extends State<UploadPage> {
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
             child: Padding(
               padding: const EdgeInsets.all(24),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Icon(Icons.cloud_upload, size: 80, color: Colors.blueAccent),
-                  const SizedBox(height: 16),
-                  const Text("Upload Your Content", style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 8),
-                  const Text(
-                    "Share notes, videos or worksheets with the community. Let's help students learn better!",
-                    textAlign: TextAlign.center,
-                    style: TextStyle(fontSize: 14, color: Colors.black54),
-                  ),
-                  const SizedBox(height: 20),
-                  Form(
-                    key: _formKey,
-                    child: Column(
-                      children: [
-                        _buildInput(Icons.title, "Title", controller: titleController),
-                        const SizedBox(height: 16),
-                        _buildInput(Icons.book, "Subject", controller: subjectController),
-                        const SizedBox(height: 16),
-                        _buildDropdown(Icons.school, "Select Class", selectedClass, classOptions,
-                                (val) => setState(() => selectedClass = val)),
-                        const SizedBox(height: 16),
-                        _buildDropdown(Icons.category, "Material Type", selectedType, typeOptions, (val) {
-                          setState(() {
-                            selectedType = val;
-                            selectedFile = null;
-                          });
-                        }),
-                        const SizedBox(height: 16),
-                        _buildDescriptionField(),
-                        const SizedBox(height: 16),
-                        ElevatedButton.icon(
-                          onPressed: _pickFile,
-                          icon: const Icon(Icons.attach_file),
-                          label: Text(selectedFile != null ? selectedFile!.name : "Choose File"),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.blue,
-                            minimumSize: const Size.fromHeight(48),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                        ElevatedButton.icon(
-                          onPressed: _pickThumbnail,
-                          icon: const Icon(Icons.image),
-                          label: Text(thumbnailFile != null ? thumbnailFile!.name : "Optional: Choose Thumbnail",
-                              overflow: TextOverflow.ellipsis),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.grey.shade200,
-                            foregroundColor: Colors.blue,
-                            minimumSize: const Size.fromHeight(48),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                        ElevatedButton.icon(
-                          onPressed: _submitUpload,
-                          icon: const Icon(Icons.upload),
-                          label: const Text("Upload Material"),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.green,
-                            foregroundColor: Colors.white,
-                            minimumSize: const Size.fromHeight(48),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                          ),
-                        ),
-                      ],
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.cloud_upload, size: 80, color: Colors.blueAccent),
+                    const SizedBox(height: 16),
+                    const Text("Upload Your Content", style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 8),
+                    const Text(
+                      "Share notes, videos or worksheets with the community. Let's help students learn better!",
+                      textAlign: TextAlign.center,
+                      style: TextStyle(fontSize: 14, color: Colors.black54),
                     ),
-                  ),
-                ],
+                    const SizedBox(height: 20),
+                    _buildInput(Icons.title, "Title", controller: titleController),
+                    const SizedBox(height: 16),
+                    _buildInput(Icons.book, "Subject", controller: subjectController),
+                    const SizedBox(height: 16),
+                    _buildDropdown(Icons.school, "Select Class", selectedClass, classOptions,
+                            (val) => setState(() => selectedClass = val)),
+                    const SizedBox(height: 16),
+                    _buildDropdown(Icons.category, "Material Type", selectedType, typeOptions, (val) {
+                      setState(() {
+                        selectedType = val;
+                        selectedFile = null;
+                      });
+                    }),
+                    const SizedBox(height: 16),
+                    _buildDescriptionField(),
+                    const SizedBox(height: 16),
+                    ElevatedButton.icon(
+                      onPressed: _pickFile,
+                      icon: const Icon(Icons.attach_file),
+                      label: Text(selectedFile != null ? selectedFile!.name : "Choose File"),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.blue,
+                        minimumSize: const Size.fromHeight(48),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    ElevatedButton.icon(
+                      onPressed: _pickThumbnail,
+                      icon: const Icon(Icons.image),
+                      label: Text(thumbnailFile != null ? thumbnailFile!.name : "Optional: Choose Thumbnail"),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.grey.shade200,
+                        foregroundColor: Colors.blue,
+                        minimumSize: const Size.fromHeight(48),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    ElevatedButton.icon(
+                      onPressed: _submitUpload,
+                      icon: const Icon(Icons.upload),
+                      label: const Text("Upload Material"),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.green,
+                        foregroundColor: Colors.white,
+                        minimumSize: const Size.fromHeight(48),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
@@ -170,6 +165,8 @@ class _UploadPageState extends State<UploadPage> {
             Navigator.pushReplacementNamed(context, '/contributor-dashboard');
           } else if (index == 2) {
             Navigator.push(context, MaterialPageRoute(builder: (context) => const GalleryPage()));
+          } else if (index == 3) {
+            Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const ProfilePage()));
           }
         },
         items: const [
@@ -235,24 +232,15 @@ class _UploadPageState extends State<UploadPage> {
       );
       return;
     }
-
     final typeGroup = XTypeGroup(label: 'custom', extensions: getAllowedExtensions());
     final picked = await openFile(acceptedTypeGroups: [typeGroup]);
-    if (picked != null) {
-      setState(() {
-        selectedFile = picked;
-      });
-    }
+    if (picked != null) setState(() => selectedFile = picked);
   }
 
   Future<void> _pickThumbnail() async {
     final imageGroup = XTypeGroup(label: 'images', extensions: ['jpg', 'png', 'jpeg']);
     final picked = await openFile(acceptedTypeGroups: [imageGroup]);
-    if (picked != null) {
-      setState(() {
-        thumbnailFile = picked;
-      });
-    }
+    if (picked != null) setState(() => thumbnailFile = picked);
   }
 
   Future<void> _submitUpload() async {
@@ -264,9 +252,7 @@ class _UploadPageState extends State<UploadPage> {
         return;
       }
 
-      setState(() {
-        isUploading = true;
-      });
+      setState(() => isUploading = true);
 
       try {
         final uid = await _getStoredUid();
@@ -317,9 +303,7 @@ class _UploadPageState extends State<UploadPage> {
           const SnackBar(content: Text("Upload successful!")),
         );
       } catch (e) {
-        setState(() {
-          isUploading = false;
-        });
+        setState(() => isUploading = false);
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Upload failed: $e")));
       }
     }

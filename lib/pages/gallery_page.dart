@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:the_learning_nest/dashboards/contributor_dashboard.dart';
 import 'package:the_learning_nest/pages/content_viewer_page.dart';
+import 'package:the_learning_nest/pages/profile_page.dart';
 import 'upload_page.dart';
 
 class GalleryPage extends StatelessWidget {
@@ -80,7 +81,7 @@ class GalleryPage extends StatelessWidget {
                           maxCrossAxisExtent: 300,
                           mainAxisSpacing: 16,
                           crossAxisSpacing: 16,
-                          mainAxisExtent: 380,
+                          mainAxisExtent: 400,
                         ),
                         itemCount: materials.length,
                         itemBuilder: (context, index) {
@@ -109,7 +110,6 @@ class GalleryPage extends StatelessWidget {
                               );
                             },
                             child: Container(
-                              height: 420,
                               decoration: BoxDecoration(
                                 color: Colors.white,
                                 borderRadius: BorderRadius.circular(16),
@@ -248,6 +248,11 @@ class GalleryPage extends StatelessWidget {
             Navigator.pushReplacement(
               context,
               MaterialPageRoute(builder: (context) => const UploadPage()),
+            );
+          } else if (index == 3) {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => const ProfilePage()),
             );
           }
         },
